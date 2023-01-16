@@ -1,5 +1,7 @@
-// import  React, { Component } from 'react';
+
 import { toast } from "react-toastify";
+import { useState } from 'react';
+import { useEffect } from 'react';
 import propTypes from "prop-types";
 import { fetchImages } from "../../Api/fetchImages";
 import { Loader } from "components/Loader/Loader";
@@ -7,90 +9,85 @@ import { Button } from "components/Button/Button";
 import css from "./ImageGallery.module.css";
 
 import { ImageGalleryItem } from "components/ImageGalleryItem/ImageGalleryItem";
-import { useState } from 'react';
-import { useEffect } from 'react';
 
-
-export const ImageGallery = () => {
-
+export const ImageGallery = ({
+  currentSearch,
+  onImageClick,
+  page,
+  setPage,
+}) => {
   const [imagesArray, setImagesArray] = useState([]);
-  const [page, setPage] = useState(1);
-  const [isLoading, setIsloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-
-  const fetcher = (nextName, nextPage, prevName) => {
-    fetchImages(nextName, nextPage).then(
-      ({ hits: newImagesArray, totalHits: totalImages }) => {
+  useEffect(() => {
+    (async () => {
+      if (currentSearch === "") {
+        return;
+      }
+      const asyncFetcher = async () => {
+        setIsLoading(true);
+        const { hits: newImagesArray, totalHits: totalImages } =
+          await fetchImages(currentSearch, page);
         if (newImagesArray.length === 0 && totalImages === 0) {
           toast.error("Oops nothing found");
-          setIsloading({ isLoading: false });
+          setIsLoading(false);
           return;
         }
         if (newImagesArray.length === 0 && totalImages !== 0) {
           toast.warning("Nothing more found");
-          setIsloading({ isLoading: false });
+          setIsLoading(false);
           return;
         }
-        if (prevName !== nextName) {
+        if (page === 1) {
+          setImagesArray([]);
           toast.success(`Found ${totalImages} images`);
-          setIsloading({ isLoading: false });
+          setIsLoading(false);
         }
-        setImagesArray(({ imagesArray }) => ({
-          imagesArray: [...imagesArray, ...newImagesArray],
-          isLoading: false,
-        }));
-      }
-    );
+        setImagesArray((prevImagesArray) => [
+          ...prevImagesArray,
+          ...newImagesArray,
+        ]);
+        setIsLoading(false);
+      };
+      asyncFetcher();
+    })();
+  }, [page, currentSearch]);
+
+  const handleClickMore = () => {
+    setPage((prevPage) => prevPage + 1);
   };
-
-  useEffect(() => {
-    const prevName = prev.currentSearch;
-    const nextName = currentSearch;
-    const prevPage = prev.page;
-    const nextPage = page;
-
-    fetcher({ nextName, nextPage, prevName, prevPage })
-    if (prevName !== nextName) {
-      setImagesArray({ imagesArray: [], page: 1, isLoading: true });
-      fetcher(nextName);
-    }
-    if (prevPage !== nextPage && nextPage !== 1) {
-      setIsloading({ isLoading: true });
-      fetcher(nextName, nextPage, prevName);
-    }
-  }, [nextName, nextPage, prevName, prevPage])
-
-  
-
-  
- const handleClickMore = () => {
-   
-      return { page: prev.page + 1 };
-
-  };
-
 
   return (
-      <>
-        {imagesArray.length !== 0 && (
-          <ul className={css.ImageGallery}>
-            {imagesArray.map((image) => (
-              <ImageGalleryItem
-                onclick={this.props.onImageClick}
-                image={image}
-                key={image.id}
-              />
-            ))}
-          </ul>
-        )}
-        {isLoading && <Loader />}
-        {imagesArray.length > 0 ? (
-          <Button onClick={handleClickMore} isDisabled={isLoading} />
-        ) : null}
-      </>
-    );
-  }
-  
+    <>
+      {imagesArray.length !== 0 && (
+        <ul className={css.ImageGallery}>
+          {imagesArray.map((image) => (
+            <ImageGalleryItem
+              onclick={onImageClick}
+              image={image}
+              key={image.id}
+            />
+          ))}
+        </ul>
+      )}
+      {isLoading && <Loader />}
+      {imagesArray.length > 0 && (
+        <Button onClick={handleClickMore} isDisabled={isLoading} />
+      )}
+    </>
+  );
+};
+
+ImageGallery.propTypes = {
+  images: propTypes.arrayOf(
+    propTypes.shape({
+      id: propTypes.number.isRequired,
+    })
+  ),
+  onImageClick: propTypes.func.isRequired,
+  page: propTypes.number.isRequired,
+  setPage: propTypes.func.isRequired,
+};
 
 
 // export class ImageGallery extends Component {

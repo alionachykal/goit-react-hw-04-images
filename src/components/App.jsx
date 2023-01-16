@@ -1,76 +1,63 @@
 
-import React from "react";
-
-import { Searchbar } from "./Searchbar/Searchbar";
-
-import { ImageGallery } from "./ImageGallery/ImageGallery";
 
 
-import { Modal } from "./Modal/Modal";
+import React, { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
-
-
+import { Searchbar } from "./Searchbar/Searchbar";
+import { ImageGallery } from "./ImageGallery/ImageGallery";
+import { Modal } from "./Modal/Modal";
 
 export const App = () => {
-   
-  const [currentSearch, setCurrentSearch] = useState('');
+  const [currentSearch, setCurrentSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalImg, setModalImg] = useState('');
-  const [modalAlt, setModalAlt] = useState('');
-  
+  const [modalImg, setModalImg] = useState("");
+  const [modalAlt, setModalAlt] = useState("");
 
-   const handleSubmit = (currentSearch) => {
-    setCurrentSearch({ currentSearch });
-  };
- 
- const handleImageClick = e => {
-
-   setModalOpen(true);
-   modalAlt(e.target.alt);
-   modalImg(e.target.name);
-
+  const handleSubmit = (currentSearch) => {
+    setCurrentSearch(currentSearch);
+    setPage(1);
   };
 
- const  handleModalClose = () => {
-
-   modalOpen(false);
-   modalImg("");
-   modalAlt("");
-   
+  const handleImageClick = (e) => {
+    setModalOpen(true);
+    setModalAlt(e.target.alt);
+    setModalImg(e.target.name);
   };
-  
-  
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setModalImg("");
+    setModalAlt("");
+  };
+
   return (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gridGap: "16px",
-          paddingBottom: "24px",
-        }}
-      >
-        <React.Fragment>
-          <Searchbar onSubmit={(e) => handleSubmit(e)} />
-          <ImageGallery
-            onImageClick={handleImageClick}
-            currentSearch={currentSearch}
-          />
-        </React.Fragment>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr",
+        gridGap: "16px",
+        paddingBottom: "24px",
+      }}
+    >
+      <React.Fragment>
+        <Searchbar onSubmit={handleSubmit} />
+        <ImageGallery
+          onImageClick={handleImageClick}
+          currentSearch={currentSearch}
+          page={page}
+          setPage={setPage}
+        />
+      </React.Fragment>
 
-        {modalOpen ? (
-          <Modal
-            src={modalImg}
-            alt={modalAlt}
-            handleClose={handleModalClose}
-          />
-        ) : null}
-        <ToastContainer autoClose={3000} />
-      </div>
-    );
-  
-}
+      {modalOpen && (
+        <Modal src={modalImg} alt={modalAlt} handleClose={handleModalClose} />
+      )}
+      <ToastContainer autoClose={3000} />
+    </div>
+  );
+};
 
 // export class App extends Component {
 //   state = {
